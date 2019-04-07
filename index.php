@@ -27,7 +27,6 @@ echo json_encode($users);
 /***********************************/
 /* Testando classe DAO de Usuários */
 /***********************************/
-
 $user = new UserDAO();
 
 $user->loadUser(1);
