@@ -2,7 +2,7 @@
 
 require_once("config.php");
 
-$conn = new ConnectionDAO();
+$conn = new ConnectionPDO();
 
 $sql = "SELECT * FROM users;";
 

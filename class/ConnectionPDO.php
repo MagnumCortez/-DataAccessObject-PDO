@@ -1,6 +1,6 @@
 <?php
 
-class ConnectionDAO extends PDO {
+class ConnectionPDO extends PDO {
 	private $conn;
 
 	public function __construct()
