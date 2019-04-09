@@ -45,7 +45,7 @@ class UserDAO {
 		$this->password = $password;
 	}
 
-	private function fillUser(Array $user)
+	private function setData(Array $user)
 	{
 		$this->setUserID($user['userID']);
 		$this->setName($user['name']);
@@ -60,10 +60,10 @@ class UserDAO {
 	{
 		$statement = new ConnectionPDO();
 
-		$sql = "SELECT * FROM users WHERE userID = :userID;";
+		$sql = "SELECT * FROM users WHERE userID = :USERID;";
 
 		$params = [
-			'userID' => $userID
+			'USERID' => $userID
 		];
 
 		$result = $statement->select($sql, $params);
@@ -71,7 +71,7 @@ class UserDAO {
 		if (isset($result[0])) {
 			$row = $result[0];
 
-			$this->fillUser($row);
+			$this->setData($row);
 		}
 	}
 
@@ -87,18 +87,112 @@ class UserDAO {
 		return $statement->select($sql);
 	}
 
+	/**
+	 * Does search for login and returns a user
+	 */
 	public static function search($login)
 	{
 		$statement = new ConnectionPDO();
 
-		$sql = "SELECT * FROM users WHERE login LIKE :search ORDER BY name;";
+		$sql = "SELECT * FROM users WHERE login LIKE :SEARCH ORDER BY name;";
 
 		$params = [
-			'search' => '%' . $login . '%'
+			'SEARCH' => '%' . $login . '%'
 		];
 
 		return $statement->select($sql, $params);
-	} 
+	}
+
+	/**
+	 * Validate login and password and load user
+	 */
+	public function login($login, $password)
+	{
+		$statement = new ConnectionPDO();
+
+		$sql = "SELECT * FROM users WHERE login = :LOGIN AND password = :PASSWORD;";
+
+		$params = [
+			'LOGIN' => $login,
+			'PASSWORD' => $password
+		];
+
+		$result = $statement->select($sql, $params);
+
+		if (!isset($result[0] )) {
+			throw new Exception("Login e/ou senha inválido!", 1);
+		}
+
+		$row = $result[0];
+
+		$this->setData($row);
+	}
+
+	/**
+	 * Persist user data and return userID
+	 */
+	public function insert()
+	{
+		$statement = new ConnectionPDO();
+
+		//CAll Procedure
+		$sql = "CALL sp_users_insert(:NAME, :LOGIN, :PASSWORD);";
+
+		$params = [
+			'NAME' => $this->getName(),
+			'LOGIN' => $this->getLogin(),
+			'PASSWORD' => $this->getPassword()
+		];
+
+		$result = $statement->select($sql, $params);
+
+		if (!isset($result[0] )) {
+			throw new Exception("Não foi possivel persistir dados do usuário!", 1);
+		}
+
+		$row = $result[0];
+
+		$this->setData($row);	
+	}
+
+	public function update($name, $login, $password)
+	{
+		$statement = new ConnectionPDO();
+
+		$this->setName($name);
+		$this->setLogin($login);
+		$this->setPassword($password);
+
+		$sql = "UPDATE users SET name = :NAME, login = :LOGIN, password = :PASSWORD WHERE userID = :USERID;";
+
+		$params = [
+			'NAME' => $this->getName(),
+			'LOGIN' => $this->getLogin(),
+			'PASSWORD' => $this->getPassword(),
+			'USERID' => $this->getUserID()
+		];
+
+		$statement->query($sql, $params);
+	}
+
+	public function delete()
+	{
+		$statement = new ConnectionPDO();
+
+		$sql = "DELETE FROM users WHERE userID = :USERID;";
+
+		$params = [
+			'USERID' => $this->getUserID()
+		];
+
+		$result = $statement->query($sql, $params);
+
+		if ($result->rowCount() == 0) {
+			throw new Exception("Não foi possivel remover dados do usuário!", 1);
+		}
+
+		$this->setData([]);
+	}
 
 	public function __toString() 
 	{
