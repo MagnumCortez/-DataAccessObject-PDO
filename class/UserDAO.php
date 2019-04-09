@@ -53,7 +53,11 @@ class UserDAO {
 		$this->setPassword($user['password']);
 	}
 
-	public function loadUser($userID) {
+	/**
+	 * Load a user by ID
+	 */
+	public function loadUser($userID) 
+	{
 		$statement = new ConnectionPDO();
 
 		$sql = "SELECT * FROM users WHERE userID = :userID;";
@@ -71,7 +75,33 @@ class UserDAO {
 		}
 	}
 
-	public function __toString() {
+	/**
+	 * return a list of users
+	 */
+	public static function getList() 
+	{
+		$statement = new ConnectionPDO();
+
+		$sql = "SELECT * FROM users ORDER BY name;";
+
+		return $statement->select($sql);
+	}
+
+	public static function search($login)
+	{
+		$statement = new ConnectionPDO();
+
+		$sql = "SELECT * FROM users WHERE login LIKE :search ORDER BY name;";
+
+		$params = [
+			'search' => '%' . $login . '%'
+		];
+
+		return $statement->select($sql, $params);
+	} 
+
+	public function __toString() 
+	{
 		return json_encode([
 			'userID' => $this->getUserID(),
 			'name' => $this->getName(),
